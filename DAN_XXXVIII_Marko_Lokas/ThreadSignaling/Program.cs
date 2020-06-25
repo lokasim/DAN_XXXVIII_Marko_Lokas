@@ -12,12 +12,20 @@ namespace ThreadSignaling
     class Program
     {
         public static readonly object locker = new object();
+        public static readonly object lockerSecond = new object();
         public static int randomCounter = 0;
         public static List<int> TopRoutesList = new List<int>();
         public static List<int> TopTenRoutesList = new List<int>();
         public static List<int> ManagerTopTenRoutesList = new List<int>();
         public static EventWaitHandle route = new AutoResetEvent(false);
         public static EventWaitHandle manager = new AutoResetEvent(false);
+
+        public static CountdownEvent countdown = new CountdownEvent(10);
+        public static Barrier barrier = new Barrier(2);
+
+        public static List<Thread> TruckThreadList = new List<Thread>();
+        public static List<string> LoadingTimeListAllTrucks = new List<string>();
+
         public static Thread sistemThread = new Thread(new ThreadStart(CreateRoutes));
         public static Thread managerThread = new Thread(new ThreadStart(ManagerMethod));
 
@@ -26,10 +34,73 @@ namespace ThreadSignaling
             sistemThread.Start();
             Thread.Sleep(3000);
             managerThread.Start();
+            managerThread.Join();
 
+            for (int i = 1; i < 11; i++)
+            {
+                if (i % 2 == 1)
+                {
+                    Thread thread = new Thread(new ThreadStart(FirstLoadingLine))
+                    {
+                        Name = "Truck-" + i
+                    };
+                    TruckThreadList.Add(thread);
+                }
+                else if (i % 2 == 0)
+                {
+                    Thread thread = new Thread(new ThreadStart(SecondLoadingLine))
+                    {
+                        Name = "Truck-" + i
+                    };
+                    TruckThreadList.Add(thread);
+                }
+            }
 
-
+            foreach (var thread in TruckThreadList)
+            {
+                thread.Start();
+            }
+            countdown.Wait();
+            Console.WriteLine("\nPress any key to exit app.");
             Console.ReadKey();
+        }
+
+        public static void FirstLoadingLine()
+        {
+            lock (locker)
+            {
+                Thread thread = Thread.CurrentThread;
+                Console.WriteLine(thread.Name + " is being loaded");
+                //Random loading time
+                Random randomLoadingTime = new Random();
+                int FirstTruckLoadingTime = randomLoadingTime.Next(500, 5001);
+                Thread.Sleep(FirstTruckLoadingTime);
+                //Loading duration message
+                Console.WriteLine(thread.Name + " is loaded " + FirstTruckLoadingTime + " ms");
+                LoadingTimeListAllTrucks.Add(thread.Name + "," + FirstTruckLoadingTime);
+                barrier.SignalAndWait();
+            }
+            countdown.Signal();
+
+        }
+
+        public static void SecondLoadingLine()
+        {
+            lock (lockerSecond)
+            {
+                Thread thread = Thread.CurrentThread;
+                Console.WriteLine(thread.Name + " is being loaded");
+                //Random loading time
+                Random randomLoadingTime = new Random();
+                int SecondTruckLoadingTime = randomLoadingTime.Next(500, 5001);
+                Thread.Sleep(SecondTruckLoadingTime);
+                //Loading duration message
+                Console.WriteLine(thread.Name + " is loaded " + SecondTruckLoadingTime + " ms");
+                LoadingTimeListAllTrucks.Add(thread.Name + "," + SecondTruckLoadingTime);
+                barrier.SignalAndWait();
+            }
+            countdown.Signal();
+
         }
 
         public static void CreateRoutes()
@@ -53,7 +124,7 @@ namespace ThreadSignaling
                 }
             }
             Console.WriteLine("Completed random gnerated routes.");
-            
+
             string[] routes = File.ReadAllLines(@"..\..\Routes.txt");
             foreach (var route in routes)
             {
@@ -90,6 +161,7 @@ namespace ThreadSignaling
             Console.Write("}");
             Console.WriteLine();
             Console.WriteLine("Everyting is ready, loading can begin.");
+            Console.WriteLine("Please wait...");
         }
 
         public static void ManagerMethod()
