@@ -25,6 +25,7 @@ namespace ThreadSignaling
 
         public static List<Thread> TruckThreadList = new List<Thread>();
         public static List<string> LoadingTimeListAllTrucks = new List<string>();
+        public static List<string> AllTrucksWithRoutesList = new List<string>();
 
         public static Thread sistemThread = new Thread(new ThreadStart(CreateRoutes));
         public static Thread managerThread = new Thread(new ThreadStart(ManagerMethod));
@@ -61,6 +62,38 @@ namespace ThreadSignaling
                 thread.Start();
             }
             countdown.Wait();
+
+            Console.WriteLine("Assigning routes");
+
+            int countDestination = 0;
+            foreach (var truck in LoadingTimeListAllTrucks)
+            {
+                if (TopTenRoutesList.Count == 10)
+                {
+                    for (int i = 0; i < TopTenRoutesList.Count; i++)
+                    {
+                        string[] truckName = truck.Split(',');
+                        AllTrucksWithRoutesList.Add(truck + "," + TopTenRoutesList[i]);
+                        Console.WriteLine("The " + truckName[0] + " has been assigned route ID: " + TopTenRoutesList[i]);
+                        countDestination++;
+                    }
+                    break;
+                } 
+                else if(ManagerTopTenRoutesList.Count == 10)
+                {
+                    for (int i = 0; i < ManagerTopTenRoutesList.Count; i++)
+                    {
+                        string[] truckName = truck.Split(',');
+                        AllTrucksWithRoutesList.Add(truck + "," + ManagerTopTenRoutesList[i]);
+                        Console.WriteLine("The " + truckName[0] + " has been assigned route ID: " + ManagerTopTenRoutesList[i]);
+                        countDestination++;
+                    }
+                    break;
+                }
+            }
+
+
+
             Console.WriteLine("\nPress any key to exit app.");
             Console.ReadKey();
         }
