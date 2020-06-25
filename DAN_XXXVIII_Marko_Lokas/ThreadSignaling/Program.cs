@@ -165,7 +165,7 @@ namespace ThreadSignaling
                         Thread.Sleep(randomDeliveryTime);
                     }
                     //Print a message about the truck, loading time, route ID and estimated delivery time
-                    Console.WriteLine("\n" + trucks[0] + "\nTime Loading: " + trucks[1] + "\nRoutes ID: " + trucks[2] + "\nDelivery time: " + randomDeliveryTime);
+                    Console.WriteLine("\n" + trucks[0] + "\nTime Loading: " + trucks[1] + " ms\nRoutes ID: " + trucks[2] + "\nDelivery time: " + randomDeliveryTime + " ms");
                     TruckTimeDestinationList.Add(trucks[0] + "," + trucks[1] + "," + trucks[2] + "," + randomDeliveryTime);
                     //When the order is canceled, due to delivery delay
                     if (randomDeliveryTime > 3000)
@@ -183,7 +183,7 @@ namespace ThreadSignaling
                         Console.WriteLine("Unloading in progress...");
                         Thread.Sleep(Convert.ToInt16(unloading / 1.5));
                         //Print duration of unloading
-                        Console.WriteLine("Time Unloading: " + String.Format("{0:0.00}", unloading / 1.5));
+                        Console.WriteLine("Time Unloading: " + String.Format("{0:0.00}", unloading / 1.5) + " ms");
                     }
                     Console.Write("\n" + new string('-', 50));
                     countdownRoute.Signal();
